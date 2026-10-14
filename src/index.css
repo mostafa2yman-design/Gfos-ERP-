@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@layer base {
+  *, ::before, ::after {
+    font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', Tahoma, sans-serif;
+  }
+}
+
+body {
+  font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', Tahoma, sans-serif;
+  background-color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+  background-color: #0c0617;
+  color: #f1f5f9;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+}
+
+/* Industrial tabular numbers for telemetry & metrics */
+.tabular-nums, table, [data-metric] {
+  font-variant-numeric: tabular-nums;
+}
+
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  html, body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide interactive screen elements during print */
+  nav,
+  aside,
+  header:not(.gfos-print-header),
+  button:not(.print-keep),
+  .no-print {
+    display: none !important;
+  }
+
+  .gfos-print-document {
+    font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: #0f172a !important;
+    font-size: 10.5px !important;
+    line-height: 1.4 !important;
+  }
+
+  .gfos-print-document table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 8px !important;
+    font-size: 9.5px !important;
+    page-break-inside: auto !important;
+  }
+  
+  .gfos-print-document th, .gfos-print-document td {
+    border: 1px solid #94a3b8 !important;
+    padding: 3.5px 5px !important;
+    text-align: right;
+  }
+
+  .gfos-print-document th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .gfos-print-document thead {
+    display: table-header-group !important;
+  }
+
+  .gfos-print-document tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .gfos-print-instructions {
+    border: 1px solid #cbd5e1 !important;
+    background-color: #f8fafc !important;
+    border-radius: 4px !important;
+    padding: 6px 8px !important;
+    margin-bottom: 8px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .gfos-print-signatures {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 12px !important;
+  }
+
+  .page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+  
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .print-content {
+    padding-bottom: 15px;
+  }
+}

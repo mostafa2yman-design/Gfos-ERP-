@@ -1,0 +1,8 @@
+{
+  "name": " تأسيس مشروع نظام أمر الإنتاج الأولي للمصنع — الإصدار 3 ",
+  "description": "متابعه اوامر الانتاج من التخطيط حتى دخول المخازن وتطوير تجربه المستخدم",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
