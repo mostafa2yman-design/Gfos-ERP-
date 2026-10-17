@@ -411,7 +411,7 @@ export function ProductionOrdersList({ onEdit, onView, onNavigateToOrder }: Prod
       {toastConfig && <Toast message={toastConfig.message} type={toastConfig.type} onClose={() => setToastConfig(null)} />}
 
       {/* KPI Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white dark:bg-[#150d24] p-4 rounded-xl shadow-2xs border border-slate-200 dark:border-purple-950/70 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 dark:text-slate-400">إجمالي الأوامر</p>
@@ -443,16 +443,6 @@ export function ProductionOrdersList({ onEdit, onView, onNavigateToOrder }: Prod
         </div>
 
         <div className="bg-white dark:bg-[#150d24] p-4 rounded-xl shadow-2xs border border-slate-200 dark:border-purple-950/70 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">القطع المطلوبة</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white font-mono tabular-nums mt-1">{totalPlannedPieces.toLocaleString('ar-EG')}</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60 flex items-center justify-center font-bold">
-            <Shirt className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-[#150d24] p-4 rounded-xl shadow-2xs border border-slate-200 dark:border-purple-950/70 col-span-2 md:col-span-1 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 dark:text-slate-400">القص الفعلي الكلي</p>
             <div className="flex items-baseline gap-1 mt-1">

@@ -23,6 +23,7 @@ import {
 interface AuthContextType {
   currentUser: AppUser;
   users: AppUser[];
+  isAuthenticated: boolean;
   switchUser: (userId: string) => void;
   login: (username: string, password?: string) => { success: boolean; message?: string };
   logout: () => void;
@@ -41,9 +42,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Requirement: Default user is Admin!
   const [currentUser, setCurrentUser] = useState<AppUser>(() => getActiveSessionUser());
   const [users, setUsers] = useState<AppUser[]>(() => getStoredUsers());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('gfos_auth_active') === 'true';
+  });
 
   const refreshUsers = useCallback(() => {
     const list = getStoredUsers();
@@ -56,6 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const handleAuthChanged = () => {
       const active = getActiveSessionUser();
       setCurrentUser(active);
+      setIsAuthenticated(localStorage.getItem('gfos_auth_active') === 'true');
     };
 
     const handleUsersUpdated = () => {
@@ -95,31 +99,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateStoredUser(target.id, { lastLogin: new Date().toISOString() });
     setActiveSessionUser(target);
     setCurrentUser(target);
+    setIsAuthenticated(true);
+    localStorage.setItem('gfos_auth_active', 'true');
   };
 
   const login = (username: string, password?: string): { success: boolean; message?: string } => {
     const target = users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
     if (!target) {
-      return { success: false, message: 'اسم المستخدم غير موجود' };
+      return { success: false, message: 'اسم المستخدم غير موجود بالنظام' };
     }
     if (!target.isActive || target.status === 'suspended') {
       return { success: false, message: 'هذا الحساب معطل أو موقوف، يرجى مراجعة إدارة النظام' };
     }
-    if (password && target.password && target.password !== password.trim()) {
-      return { success: false, message: 'كلمة المرور غير صحيحة' };
+    const cleanPassword = (password || '').trim();
+    const storedPassword = (target.password || '').trim();
+    if (storedPassword && storedPassword !== cleanPassword) {
+      return { success: false, message: 'كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى' };
     }
 
     updateStoredUser(target.id, { lastLogin: new Date().toISOString() });
     setActiveSessionUser(target);
     setCurrentUser(target);
+    setIsAuthenticated(true);
+    localStorage.setItem('gfos_auth_active', 'true');
     return { success: true };
   };
 
   const logout = () => {
-    // Switch to admin default
-    const admin = users.find(u => u.role === 'admin' || u.username === 'admin') || users[0];
-    setActiveSessionUser(admin);
-    setCurrentUser(admin);
+    setIsAuthenticated(false);
+    localStorage.removeItem('gfos_auth_active');
+    localStorage.removeItem('gfos_current_session');
+    window.dispatchEvent(new CustomEvent('auth_changed'));
   };
 
   const hasPermission = useCallback((permission: PermissionKey): boolean => {
@@ -154,15 +164,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return updated;
   };
 
-  const removeUser = (userId: string) => {
+  const removeUser = (userId: string): void => {
     deleteStoredUser(userId);
     refreshUsers();
   };
 
-  const resetDefaults = () => {
-    const list = resetUsersToDefaults();
-    setUsers(list);
-    setCurrentUser(list[0]);
+  const resetDefaults = (): void => {
+    resetUsersToDefaults();
+    refreshUsers();
   };
 
   return (
@@ -170,6 +179,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         currentUser,
         users,
+        isAuthenticated,
         switchUser,
         login,
         logout,
@@ -182,7 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addUser,
         editUser,
         removeUser,
-        resetDefaults
+        resetDefaults,
       }}
     >
       {children}
@@ -190,7 +200,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

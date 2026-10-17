@@ -27,6 +27,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import { NotificationToastContainer } from "./components/ui/NotificationToast";
 import { AccessDenied } from "./components/common/AccessDenied";
 import { ALL_SCREENS_METADATA } from "./lib/permissionsConfig";
+import { LoginScreen } from "./components/auth/LoginScreen";
 
 type ViewState = 
   | "dashboard" 
@@ -60,7 +61,7 @@ interface ReturnDestination {
 }
 
 function AppContent() {
-  const { hasScreenAccess, currentUser } = useAuth();
+  const { hasScreenAccess, currentUser, isAuthenticated } = useAuth();
   const [currentView, setCurrentView] = useState<ViewState>("dashboard");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<string>("production");
@@ -86,7 +87,59 @@ function AppContent() {
     }
   }, [currentUser.id, currentUser.role]);
 
+  interface NavigationHistoryEntry {
+    view: ViewState;
+    selectedOrderId: string | null;
+    selectedTab: string;
+    accountingTab: AccountingTab;
+  }
+
+  const [historyStack, setHistoryStack] = useState<NavigationHistoryEntry[]>([]);
+
+  const pushToHistory = (
+    prevView: ViewState,
+    prevOrderId: string | null,
+    prevTab: string,
+    prevAccTab: AccountingTab
+  ) => {
+    setHistoryStack(prev => {
+      const last = prev[prev.length - 1];
+      if (
+        last &&
+        last.view === prevView &&
+        last.selectedOrderId === prevOrderId &&
+        last.selectedTab === prevTab &&
+        last.accountingTab === prevAccTab
+      ) {
+        return prev;
+      }
+      return [...prev, {
+        view: prevView,
+        selectedOrderId: prevOrderId,
+        selectedTab: prevTab,
+        accountingTab: prevAccTab
+      }].slice(-30);
+    });
+  };
+
+  const handleGoBack = () => {
+    if (historyStack.length > 0) {
+      const prevEntry = historyStack[historyStack.length - 1];
+      setHistoryStack(prev => prev.slice(0, -1));
+      setCurrentView(prevEntry.view);
+      setSelectedOrderId(prevEntry.selectedOrderId);
+      setSelectedTab(prevEntry.selectedTab);
+      setAccountingTab(prevEntry.accountingTab);
+    } else {
+      if (currentView !== "dashboard") {
+        setCurrentView("dashboard");
+        setSelectedOrderId(null);
+      }
+    }
+  };
+
   const handleNavigate = (view: ViewState) => {
+    pushToHistory(currentView, selectedOrderId, selectedTab, accountingTab);
     setCurrentView(view);
     if (view !== "form") {
       setSelectedOrderId(null);
@@ -98,6 +151,7 @@ function AppContent() {
   };
 
   const handleNavigateToOrder = (id: string, tab: string = "production") => {
+    pushToHistory(currentView, selectedOrderId, selectedTab, accountingTab);
     setSelectedOrderId(id);
     setSelectedTab(tab);
     setCurrentView("form");
@@ -108,6 +162,7 @@ function AppContent() {
     returnInfo?: ReturnDestination,
     autoOpenAdd: boolean = false
   ) => {
+    pushToHistory(currentView, selectedOrderId, selectedTab, accountingTab);
     setAccountingTab(tab);
     if (tab === "materials") {
       setAccountingAutoOpenAddMaterial(autoOpenAdd);
@@ -123,25 +178,40 @@ function AppContent() {
   };
 
   const handleEditOrder = (id: string) => {
+    pushToHistory(currentView, selectedOrderId, selectedTab, accountingTab);
     setSelectedOrderId(id);
     setSelectedTab("production");
     setCurrentView("form");
   };
 
   const handleViewOrder = (id: string) => {
+    pushToHistory(currentView, selectedOrderId, selectedTab, accountingTab);
     setSelectedOrderId(id);
     setCurrentView("form");
   };
 
   const handleBackToList = () => {
-    setSelectedOrderId(null);
-    setCurrentView("list");
+    if (historyStack.length > 0) {
+      handleGoBack();
+    } else {
+      setSelectedOrderId(null);
+      setCurrentView("list");
+    }
   };
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
 
   const isCurrentViewAllowed = hasScreenAccess(currentView as any);
 
   return (
-    <Layout currentView={currentView} onNavigate={handleNavigate}>
+    <Layout 
+      currentView={currentView} 
+      onNavigate={handleNavigate}
+      onGoBack={handleGoBack}
+      canGoBack={historyStack.length > 0 || currentView !== "dashboard"}
+    >
       {!isCurrentViewAllowed ? (
         <AccessDenied
           screenId={currentView as any}

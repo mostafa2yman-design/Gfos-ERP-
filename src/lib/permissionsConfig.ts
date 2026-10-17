@@ -62,7 +62,7 @@ export const ALL_SCREENS_METADATA: ScreenMeta[] = [
   },
   {
     id: 'operator_station',
-    title: 'محطة تشغيل الأقسام (المشغلين)',
+    title: 'مراحل تشغيل أوامر الإنتاج',
     category: 'production',
     categoryLabel: 'التخطيط وأوامر التشغيل',
     description: 'شاشة مبسطة سريعة لعمال ومشرفي الخطوط لتسجيل إنجاز الباتشات والفرز',
@@ -70,7 +70,7 @@ export const ALL_SCREENS_METADATA: ScreenMeta[] = [
   },
   {
     id: 'factory_floor_monitor',
-    title: 'شاشة صالة الإنتاج الكبيرة (TV Mode)',
+    title: 'غرفة التحكم اللحظية للإنتاج',
     category: 'production',
     categoryLabel: 'التخطيط وأوامر التشغيل',
     description: 'عرض مباشر على شاشات العرض الكبيرة لمعدلات إنجاز الخطوط والباتشات اللحظية',

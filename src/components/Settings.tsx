@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT_SIZE_OPTIONS } from "../lib/theme";
 import {
   Settings as SettingsIcon,
   Palette,
+  Type,
   AlertTriangle,
   Download,
   Database,
@@ -52,7 +54,7 @@ interface SettingsProps {
 type SectionKey = 'factory' | 'users' | 'barcode' | 'backup' | 'theme' | 'danger';
 
 export function Settings({ onBack, onNavigateToUsers }: SettingsProps) {
-  const { color, setColor, radius, setRadius } = useTheme();
+  const { color, setColor, radius, setRadius, fontSize, setFontSize } = useTheme();
 
   // Search filter
   const [searchTerm, setSearchTerm] = useState('');
@@ -1166,6 +1168,55 @@ export function Settings({ onBack, onNavigateToUsers }: SettingsProps) {
                         {isSelected && <Check className="w-3.5 h-3.5 text-indigo-700 stroke-[3]" />}
                       </div>
                       <span className="text-xs font-bold text-slate-800">{r.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 5-Level Font Size / Screen Scale Choices */}
+            <div className="space-y-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                  <Type className="w-4 h-4 text-indigo-600" />
+                  <span>حجم الخط ومقياس عرض الشاشة عموماً (5 مستويات):</span>
+                </label>
+                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  {FONT_SIZE_OPTIONS.find(o => o.id === fontSize)?.label || 'قياسي (100%)'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                يتحكم في تكبير أو تصغير حجم الخطوط وكثافة عرض الشاشات والجداول لزيادة مساحة العمل المتاحة أو تحسين القراءة
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                {FONT_SIZE_OPTIONS.map(opt => {
+                  const isSelected = fontSize === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setFontSize(opt.id)}
+                      className={`p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-between gap-2.5 cursor-pointer shadow-2xs ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500 shadow-xs'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="h-10 flex items-center justify-center w-full bg-slate-50 rounded-xl border border-slate-100">
+                        <span 
+                          className="font-black text-slate-900 leading-none"
+                          style={{ fontSize: `${opt.scalePercent}%` }}
+                        >
+                          خط {opt.shortLabel}
+                        </span>
+                      </div>
+                      <div className="w-full text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="text-xs font-bold text-slate-800">{opt.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[3]" />}
+                        </div>
+                        <span className="text-[10px] text-slate-500 block mt-1 leading-tight">{opt.description}</span>
+                      </div>
                     </button>
                   );
                 })}
