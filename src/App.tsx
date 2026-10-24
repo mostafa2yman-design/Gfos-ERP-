@@ -28,6 +28,8 @@ import { NotificationToastContainer } from "./components/ui/NotificationToast";
 import { AccessDenied } from "./components/common/AccessDenied";
 import { ALL_SCREENS_METADATA } from "./lib/permissionsConfig";
 import { LoginScreen } from "./components/auth/LoginScreen";
+import { CustomerAccountStatement } from "./components/customer_supplier/CustomerAccountStatement";
+import { SupplierAccountStatement } from "./components/customer_supplier/SupplierAccountStatement";
 
 type ViewState = 
   | "dashboard" 
@@ -50,7 +52,9 @@ type ViewState =
   | "hr_payroll" 
   | "overhead_costing"
   | "factory_floor_monitor"
-  | "operator_station";
+  | "operator_station"
+  | "customer_statement"
+  | "supplier_statement";
 
 
 interface ReturnDestination {
@@ -70,6 +74,7 @@ function AppContent() {
   const [accountingAutoOpenAddMaterial, setAccountingAutoOpenAddMaterial] = useState<boolean>(false);
   const [returnDestination, setReturnDestination] = useState<ReturnDestination | null>(null);
   const [selectedLedgerAccountCode, setSelectedLedgerAccountCode] = useState<string>('12411');
+  const [selectedStatementPartyId, setSelectedStatementPartyId] = useState<string | null>(null);
 
   const handleNavigateToFirstAllowed = () => {
     const firstAllowed = ALL_SCREENS_METADATA.find(s => hasScreenAccess(s.id));
@@ -86,6 +91,20 @@ function AppContent() {
       handleNavigateToFirstAllowed();
     }
   }, [currentUser.id, currentUser.role]);
+
+  // Support global navigation event for cross-screen statements & shortcuts
+  React.useEffect(() => {
+    const handleGlobalNav = (e: any) => {
+      if (e.detail?.view) {
+        if (e.detail?.partyId) {
+          setSelectedStatementPartyId(e.detail.partyId);
+        }
+        handleNavigate(e.detail.view as ViewState);
+      }
+    };
+    window.addEventListener('gfos_navigate_view', handleGlobalNav);
+    return () => window.removeEventListener('gfos_navigate_view', handleGlobalNav);
+  }, []);
 
   interface NavigationHistoryEntry {
     view: ViewState;
@@ -511,6 +530,38 @@ function AppContent() {
         <DepartmentOperatorStation
           onBack={() => handleNavigate("dashboard")}
           onNavigateToOrder={(orderId, tab) => handleNavigateToOrder(orderId, tab)}
+        />
+      )}
+      {currentView === "customer_statement" && (
+        <CustomerAccountStatement
+          initialCustomerId={selectedStatementPartyId || undefined}
+          onNavigateToLedger={(accountCode) => {
+            if (accountCode) setSelectedLedgerAccountCode(accountCode);
+            handleNavigate("general_ledger");
+          }}
+          onNavigateToTreasury={() => handleNavigate("treasury")}
+          onNavigateToSales={() => handleNavigate("sales")}
+          onNavigateToSupplierStatement={(supplierId) => {
+            if (supplierId) setSelectedStatementPartyId(supplierId);
+            handleNavigate("supplier_statement");
+          }}
+          onBack={() => handleNavigate("dashboard")}
+        />
+      )}
+      {currentView === "supplier_statement" && (
+        <SupplierAccountStatement
+          initialSupplierId={selectedStatementPartyId || undefined}
+          onNavigateToLedger={(accountCode) => {
+            if (accountCode) setSelectedLedgerAccountCode(accountCode);
+            handleNavigate("general_ledger");
+          }}
+          onNavigateToTreasury={() => handleNavigate("treasury")}
+          onNavigateToPurchases={() => handleNavigate("purchases")}
+          onNavigateToCustomerStatement={(customerId) => {
+            if (customerId) setSelectedStatementPartyId(customerId);
+            handleNavigate("customer_statement");
+          }}
+          onBack={() => handleNavigate("dashboard")}
         />
       )}
         </>

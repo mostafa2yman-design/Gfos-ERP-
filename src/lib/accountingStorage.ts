@@ -149,10 +149,184 @@ export const saveMaterials = (items: MaterialItem[]) => {
   window.dispatchEvent(new CustomEvent('raw_materials_updated'));
 };
 
-export const getLabor = () => getItems<LaborProfile>(LABOR_KEY);
+export const getLabor = (): LaborProfile[] => {
+  const raw = localStorage.getItem(LABOR_KEY);
+  if (raw === null) {
+    const defaults: LaborProfile[] = [
+      {
+        id: 'labor_1',
+        name: 'محمود عبد الفتاح السيد',
+        code: 'LAB-101',
+        nationalId: '28910151203456',
+        role: 'عامل قص وتفصيل',
+        departmentId: 'dept_cut',
+        skillLevel: 'فني أول',
+        phone: '01012345671',
+        city: 'المحلة الكبرى',
+        address: 'منطقة الجمهورية',
+        hireDate: '2023-01-15',
+        salaryType: 'أسبوعي',
+        salaryPeriod: 'أسبوعي',
+        baseSalary: 1800,
+        weeklySalary: 1800,
+        dailyWorkingHours: 8,
+        linkedAccountId: '5121',
+        isActive: true,
+        notes: 'مسؤول طاولة القص الرئيسية والمقصات الكهربائية'
+      },
+      {
+        id: 'labor_2',
+        name: 'أحمد إبراهيم شلبي',
+        code: 'LAB-102',
+        nationalId: '29204011604321',
+        role: 'عامل خياطة وتجميع',
+        departmentId: 'dept_sew',
+        skillLevel: 'أسطى / رئيس خط',
+        phone: '01123456782',
+        city: 'طنطا',
+        address: 'شارع البحر',
+        hireDate: '2022-06-01',
+        salaryType: 'أسبوعي',
+        salaryPeriod: 'أسبوعي',
+        baseSalary: 2200,
+        weeklySalary: 2200,
+        dailyWorkingHours: 8,
+        linkedAccountId: '5122',
+        isActive: true,
+        notes: 'أسطى خط التيشيرت والقميص والمراحل الحرجة'
+      },
+      {
+        id: 'labor_3',
+        name: 'محمد صابر حسن',
+        code: 'LAB-103',
+        nationalId: '29508121805678',
+        role: 'عامل خياطة وتجميع',
+        departmentId: 'dept_sew',
+        skillLevel: 'فني تشغيل',
+        phone: '01234567893',
+        city: 'المحلة الكبرى',
+        address: 'شارع سعد زغلول',
+        hireDate: '2023-09-10',
+        salaryType: 'يومية',
+        salaryPeriod: 'أسبوعي',
+        baseSalary: 280,
+        weeklySalary: 1680,
+        dailyWorkingHours: 8,
+        linkedAccountId: '5122',
+        isActive: true,
+        notes: 'ماكينة أوفر لوك 5 فتلة وماكينة أورليه'
+      },
+      {
+        id: 'labor_4',
+        name: 'كريم عادل الدسوقي',
+        code: 'LAB-104',
+        nationalId: '29712051206789',
+        role: 'فني تطريز وطباعة',
+        departmentId: 'dept_prep',
+        skillLevel: 'فني أول',
+        phone: '01512345674',
+        city: 'المنصورة',
+        address: 'حي الجامعة',
+        hireDate: '2023-03-20',
+        salaryType: 'أسبوعي',
+        salaryPeriod: 'أسبوعي',
+        baseSalary: 2000,
+        weeklySalary: 2000,
+        dailyWorkingHours: 8,
+        linkedAccountId: '5121',
+        isActive: true,
+        notes: 'فني شبلونات وطباعة سلك سكرين ومكبس حراري'
+      },
+      {
+        id: 'labor_5',
+        name: 'سعيد عبد العال مرسي',
+        code: 'LAB-105',
+        nationalId: '29003251407890',
+        role: 'عامل تشطيب وفنش',
+        departmentId: 'dept_finish',
+        skillLevel: 'فني تشغيل',
+        phone: '01098765435',
+        city: 'كفر الدوار',
+        address: 'منطقة السكة',
+        hireDate: '2023-11-01',
+        salaryType: 'بالقطعة',
+        salaryPeriod: 'أسبوعي',
+        baseSalary: 1500,
+        weeklySalary: 1500,
+        pieceRate: 3.5,
+        dailyWorkingHours: 8,
+        linkedAccountId: '5123',
+        isActive: true,
+        notes: 'تنظيف خيوط وتطبيق وتجهيز التعبئة'
+      },
+      {
+        id: 'labor_6',
+        name: 'حسن متولي النجار',
+        code: 'LAB-106',
+        nationalId: '28807181508901',
+        role: 'عامل مكواة وبخار',
+        departmentId: 'dept_iron',
+        skillLevel: 'فني تشغيل',
+        phone: '01187654326',
+        city: 'المحلة الكبرى',
+        address: 'ميدان الشون',
+        hireDate: '2023-05-18',
+        salaryType: 'أسبوعي',
+        salaryPeriod: 'أسبوعي',
+        baseSalary: 1750,
+        weeklySalary: 1750,
+        dailyWorkingHours: 8,
+        linkedAccountId: '5123',
+        isActive: true,
+        notes: 'مكواة بخار صناعية ومانيكان كبس'
+      }
+    ];
+    saveItems(LABOR_KEY, defaults);
+    return defaults;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    // Ensure all existing items have weeklySalary defined
+    return parsed.map((item: LaborProfile) => {
+      const weekly = item.weeklySalary || (
+        item.salaryType === 'أسبوعي' ? (item.baseSalary || 1800) :
+        item.salaryType === 'يومية' && item.baseSalary ? (item.baseSalary * 6) :
+        item.salaryType === 'شهري' && item.baseSalary ? Math.round(item.baseSalary / 4.33) :
+        (item.baseSalary || 1500)
+      );
+      return {
+        ...item,
+        weeklySalary: weekly,
+        salaryPeriod: item.salaryPeriod || 'أسبوعي'
+      };
+    });
+  } catch {
+    return [];
+  }
+};
 export const saveLabor = (items: LaborProfile[]) => saveItems(LABOR_KEY, items);
 
-export const getOperationalGroups = () => getItems<OperationalGroup>(GROUPS_KEY);
+export const getOperationalGroups = (): OperationalGroup[] => {
+  const raw = localStorage.getItem(GROUPS_KEY);
+  if (raw === null) {
+    const defaults: OperationalGroup[] = [
+      { id: 'grp_cut', name: 'عنبر وطاولة القص الآلي', code: 'GRP-CUT-01', type: 'internal', specialty: 'قص وتفصيل', machinesCount: 4, dailyCapacity: 1200, isActive: true },
+      { id: 'grp_sew_1', name: 'خط إنتاج خياطة التيشيرت (A)', code: 'GRP-SEW-01', type: 'internal', specialty: 'خياطة وتجميع', machinesCount: 16, dailyCapacity: 800, isActive: true },
+      { id: 'grp_sew_2', name: 'خط إنتاج خياطة البنطلون (B)', code: 'GRP-SEW-02', type: 'internal', specialty: 'خياطة وتجميع', machinesCount: 12, dailyCapacity: 500, isActive: true },
+      { id: 'grp_finish', name: 'عنبر التشطيب والكي النهائي', code: 'GRP-FIN-01', type: 'internal', specialty: 'تشطيب ومكواة', machinesCount: 6, dailyCapacity: 1500, isActive: true },
+      { id: 'grp_out_print', name: 'مطبعة النور الحديثة (تشغيل خارجي)', code: 'GRP-EXT-01', type: 'external', specialty: 'طباعة وتطريز خارجي', contactPerson: 'أ. محمود سامي', phone: '01065432100', isActive: true }
+    ];
+    saveItems(GROUPS_KEY, defaults);
+    return defaults;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 export const saveOperationalGroups = (items: OperationalGroup[]) => saveItems(GROUPS_KEY, items);
 
 export const getDepartments = (): Department[] => {

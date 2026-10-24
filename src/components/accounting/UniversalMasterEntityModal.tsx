@@ -204,7 +204,18 @@ export function UniversalMasterEntityModal({
   // 4. Labor Profile Form Data
   const [laborData, setLaborData] = useState<Partial<LaborProfile>>(() => {
     if (editingItem && initialType === 'labor') {
-      return { ...editingItem };
+      const item = editingItem as LaborProfile;
+      const weekly = item.weeklySalary || (
+        item.salaryType === 'أسبوعي' ? (item.baseSalary || 1800) :
+        item.salaryType === 'يومية' && item.baseSalary ? (item.baseSalary * 6) :
+        item.salaryType === 'شهري' && item.baseSalary ? Math.round(item.baseSalary / 4.33) :
+        (item.baseSalary || 1800)
+      );
+      return { 
+        ...item,
+        weeklySalary: weekly,
+        salaryPeriod: item.salaryPeriod || 'أسبوعي'
+      };
     }
     return {
       name: '',
@@ -218,10 +229,11 @@ export function UniversalMasterEntityModal({
       address: '',
       city: 'القاهرة',
       hireDate: new Date().toISOString().split('T')[0],
-      baseSalary: 250,
+      baseSalary: 1800,
+      weeklySalary: 1800,
       pieceRate: 4.5,
-      salaryType: 'يومية',
-      salaryPeriod: 'يومي',
+      salaryType: 'أسبوعي',
+      salaryPeriod: 'أسبوعي',
       dailyWorkingHours: 8,
       linkedAccountId: '5122',
       notes: '',
@@ -413,11 +425,22 @@ export function UniversalMasterEntityModal({
         }
         const existing = getLabor();
         let updated: LaborProfile[];
+        const calculatedWeekly = Number(laborData.weeklySalary) || (
+          laborData.salaryType === 'أسبوعي' ? Number(laborData.baseSalary || 1800) :
+          laborData.salaryType === 'يومية' && laborData.baseSalary ? (Number(laborData.baseSalary) * 6) :
+          laborData.salaryType === 'شهري' && laborData.baseSalary ? Math.round(Number(laborData.baseSalary) / 4.33) :
+          Number(laborData.baseSalary || 1800)
+        );
+
         const recordToSave: LaborProfile = {
           ...laborData,
           id: editingItem?.id || `labor_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
           name: laborData.name.trim(),
-          role: laborData.role || 'عامل خياطة',
+          role: laborData.role || 'عامل خياطة وتجميع',
+          salaryType: laborData.salaryType || 'أسبوعي',
+          salaryPeriod: laborData.salaryPeriod || 'أسبوعي',
+          baseSalary: Number(laborData.baseSalary) || 0,
+          weeklySalary: calculatedWeekly,
           isActive: laborData.isActive !== false,
           createdAt: editingItem?.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -1734,30 +1757,136 @@ export function UniversalMasterEntityModal({
                   <div className="sm:col-span-4">
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">نظام احتساب الأجر</label>
                     <select
-                      value={laborData.salaryType || 'يومية'}
-                      onChange={e => setLaborData({ ...laborData, salaryType: e.target.value as any })}
-                      className="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2.5"
+                      value={laborData.salaryType || 'أسبوعي'}
+                      onChange={e => {
+                        const val = e.target.value as any;
+                        let period: any = 'أسبوعي';
+                        if (val === 'يومية' || val === 'بالساعة') period = 'يومي';
+                        else if (val === 'شهري') period = 'شهري';
+
+                        let base = laborData.baseSalary || 0;
+                        let weekly = laborData.weeklySalary || 0;
+                        if (val === 'أسبوعي') {
+                          if (!weekly && base) weekly = base > 1000 ? base : base * 6;
+                          if (!base && weekly) base = weekly;
+                        } else if (val === 'يومية') {
+                          if (base > 1000) base = Math.round(base / 6);
+                          weekly = base * 6;
+                        }
+
+                        setLaborData({ 
+                          ...laborData, 
+                          salaryType: val, 
+                          salaryPeriod: period,
+                          baseSalary: base || (val === 'يومية' ? 250 : 1800),
+                          weeklySalary: weekly || 1800
+                        });
+                      }}
+                      className="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:bg-white focus:ring-2 focus:ring-purple-500"
                     >
+                      <option value="أسبوعي">أجر أسبوعي ثابت (Weekly Wage / Rate)</option>
                       <option value="يومية">أجر يومية ثابتة (Day Rate)</option>
                       <option value="بالقطعة">أجر بالقطعة المنتجة (Piece Rate)</option>
-                      <option value="شهري">راتب شهري ثابت</option>
-                      <option value="بالساعة">أجر بالساعة</option>
+                      <option value="شهري">راتب شهري ثابت (Monthly Salary)</option>
+                      <option value="بالساعة">أجر بالساعة (Hourly Rate)</option>
                     </select>
                   </div>
 
                   <div className="sm:col-span-4">
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      {laborData.salaryType === 'بالقطعة' ? 'سعر القطعة المعياري (ج.م)' : 'قيمة الأجر / الراتب (ج.م)'}
+                      {laborData.salaryType === 'بالقطعة' 
+                        ? 'سعر القطعة المعياري (ج.م)' 
+                        : laborData.salaryType === 'أسبوعي'
+                          ? 'قيمة الأجر الأسبوعي الأساسي (ج.م) *'
+                          : laborData.salaryType === 'شهري'
+                            ? 'قيمة الراتب الشهري (ج.م) *'
+                            : laborData.salaryType === 'بالساعة'
+                              ? 'أجر الساعة (ج.م) *'
+                              : 'قيمة أجر اليومية (ج.م) *'}
                     </label>
                     <input
                       type="number"
                       step="0.1"
-                      placeholder="250"
-                      value={laborData.baseSalary || ''}
-                      onChange={e => setLaborData({ ...laborData, baseSalary: Number(e.target.value) })}
+                      placeholder={laborData.salaryType === 'أسبوعي' ? "1800" : "250"}
+                      value={laborData.baseSalary ?? ''}
+                      onChange={e => {
+                        const val = Number(e.target.value);
+                        let weekly = laborData.weeklySalary;
+                        if (laborData.salaryType === 'أسبوعي') {
+                          weekly = val;
+                        } else if (laborData.salaryType === 'يومية') {
+                          weekly = val * 6;
+                        } else if (laborData.salaryType === 'شهري') {
+                          weekly = Math.round(val / 4.33);
+                        }
+                        setLaborData({ ...laborData, baseSalary: val, weeklySalary: weekly });
+                      }}
                       className="w-full text-xs font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:bg-white"
                     />
                   </div>
+
+                  {/* حقل الأجر الأسبوعي بالبيانات */}
+                  <div className="sm:col-span-4 bg-purple-50/70 p-2.5 rounded-xl border border-purple-200">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-black text-purple-900">
+                        الأجر الأسبوعي المعتمد بالبيانات (ج.م) *
+                      </label>
+                      <span className="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-black">
+                        أسبوعي (Weekly)
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      step="1"
+                      placeholder="1800"
+                      value={laborData.weeklySalary ?? (laborData.salaryType === 'أسبوعي' ? (laborData.baseSalary || '') : '')}
+                      onChange={e => {
+                        const w = Number(e.target.value);
+                        setLaborData({ 
+                          ...laborData, 
+                          weeklySalary: w,
+                          baseSalary: laborData.salaryType === 'أسبوعي' ? w : laborData.baseSalary
+                        });
+                      }}
+                      className="w-full text-xs font-mono font-black bg-white border border-purple-300 rounded-lg p-2 text-purple-950 focus:ring-2 focus:ring-purple-500 shadow-2xs"
+                    />
+                    <div className="text-[10px] text-purple-700 mt-1 font-medium">
+                      {laborData.salaryType === 'يومية' && laborData.baseSalary
+                        ? `محسوب تلقائياً: اليومية (${laborData.baseSalary}) × 6 أيام عمل = ${laborData.baseSalary * 6} ج.م`
+                        : laborData.salaryType === 'أسبوعي'
+                          ? 'قيمة مسير الرواتب المستحقة للصرف نهاية كل أسبوع'
+                          : 'المبلغ المعتمد للتسوية الأسبوعية للفني'}
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-4">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">دورية تسوية وصرف الأجر</label>
+                    <select
+                      value={laborData.salaryPeriod || 'أسبوعي'}
+                      onChange={e => setLaborData({ ...laborData, salaryPeriod: e.target.value as any })}
+                      className="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2.5"
+                    >
+                      <option value="أسبوعي">أسبوعي (تسوية مسير الرواتب نهاية الأسبوع)</option>
+                      <option value="يومي">يومي (تسوية فورية بنهاية الوردية)</option>
+                      <option value="شهري">شهري (تسوية ختامية نهاية كل شهر)</option>
+                    </select>
+                  </div>
+
+                  {laborData.salaryType === 'بالقطعة' && (
+                    <div className="sm:col-span-4 bg-amber-50/70 p-2.5 rounded-xl border border-amber-200">
+                      <label className="block text-xs font-bold text-amber-900 mb-1.5">
+                        سعر القطعة المعياري (ج.م) *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.05"
+                        placeholder="4.5"
+                        value={laborData.pieceRate || ''}
+                        onChange={e => setLaborData({ ...laborData, pieceRate: Number(e.target.value) })}
+                        className="w-full text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg p-2 text-amber-950"
+                      />
+                    </div>
+                  )}
 
                   <div className="sm:col-span-4">
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">الحساب المحاسبي للأجور (GL)</label>

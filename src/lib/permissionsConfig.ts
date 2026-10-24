@@ -10,7 +10,7 @@ import {
 export interface ScreenMeta {
   id: ScreenId;
   title: string;
-  category: 'admin' | 'production' | 'warehouse' | 'sales_purchases' | 'finance' | 'hr';
+  category: 'admin' | 'production' | 'warehouse' | 'sales_purchases' | 'finance' | 'hr' | 'customer_supplier';
   categoryLabel: string;
   description: string;
   supportedActions: StandardAction[];
@@ -195,6 +195,24 @@ export const ALL_SCREENS_METADATA: ScreenMeta[] = [
     categoryLabel: 'الموارد البشرية والأجور',
     description: 'تسجيل الفنيين والعمال، حساب إنتاجية القطعة، الحوافز، والخصومات الشهرية',
     supportedActions: ['view', 'create', 'edit', 'delete', 'approve', 'export', 'print']
+  },
+
+  // 7. Customer & Supplier Statements
+  {
+    id: 'customer_statement',
+    title: 'كشف حساب عميل',
+    category: 'customer_supplier',
+    categoryLabel: 'إدارة العملاء والموردين',
+    description: 'كشف حساب تفصيلي للعميل، فواتير المبيعات، سندات التحصيل، مردودات المبيعات والرصيد التراكمي',
+    supportedActions: ['view', 'export', 'print']
+  },
+  {
+    id: 'supplier_statement',
+    title: 'كشف حساب مورد',
+    category: 'customer_supplier',
+    categoryLabel: 'إدارة العملاء والموردين',
+    description: 'كشف حساب تفصيلي للمورد، فواتير التوريد والشراء، سندات الصرف، مردودات المشتريات ومطابقة المستحقات',
+    supportedActions: ['view', 'export', 'print']
   }
 ];
 
@@ -504,6 +522,8 @@ export function getDefaultScreenPermissionsForRole(role: UserRole): Record<Scree
     allowAllActionsFor('sales', ['view', 'print']);
     allowAllActionsFor('overhead_costing');
     allowAllActionsFor('hr_payroll', ['view', 'approve', 'print']);
+    allowAllActionsFor('customer_statement', ['view', 'print']);
+    allowAllActionsFor('supplier_statement', ['view', 'print']);
     return result;
   }
 
@@ -562,6 +582,7 @@ export function getDefaultScreenPermissionsForRole(role: UserRole): Record<Scree
     allowAllActionsFor('purchases');
     allowAllActionsFor('raw_materials_warehouse', ['view', 'print']);
     allowAllActionsFor('treasury', ['view', 'print']);
+    allowAllActionsFor('supplier_statement', ['view', 'export', 'print']);
     return result;
   }
 
@@ -570,6 +591,7 @@ export function getDefaultScreenPermissionsForRole(role: UserRole): Record<Scree
     allowAllActionsFor('sales');
     allowAllActionsFor('finished_goods_warehouse', ['view', 'print']);
     allowAllActionsFor('treasury', ['view', 'print']);
+    allowAllActionsFor('customer_statement', ['view', 'export', 'print']);
     return result;
   }
 
@@ -587,6 +609,8 @@ export function getDefaultScreenPermissionsForRole(role: UserRole): Record<Scree
     allowAllActionsFor('balance_sheet');
     allowAllActionsFor('cash_flow');
     allowAllActionsFor('hr_payroll');
+    allowAllActionsFor('customer_statement');
+    allowAllActionsFor('supplier_statement');
     allowAllActionsFor('raw_materials_warehouse', ['view', 'print']);
     allowAllActionsFor('finished_goods_warehouse', ['view', 'print']);
     return result;
@@ -606,6 +630,8 @@ export function getDefaultScreenPermissionsForRole(role: UserRole): Record<Scree
     allowAllActionsFor('balance_sheet', ['view', 'export', 'print']);
     allowAllActionsFor('cash_flow', ['view', 'export', 'print']);
     allowAllActionsFor('hr_payroll', ['view', 'export', 'print']);
+    allowAllActionsFor('customer_statement', ['view', 'export', 'print']);
+    allowAllActionsFor('supplier_statement', ['view', 'export', 'print']);
     allowAllActionsFor('raw_materials_warehouse', ['view', 'export', 'print']);
     allowAllActionsFor('finished_goods_warehouse', ['view', 'export', 'print']);
     return result;

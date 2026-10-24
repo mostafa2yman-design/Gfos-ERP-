@@ -676,10 +676,10 @@ export function Dashboard({ onNavigate, onNavigateToOrder }: DashboardProps) {
           <button
             onClick={() => onNavigate("operator_station")}
             className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-[#1d1133] dark:hover:bg-[#2c1a4d] text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-purple-900/40 transition-all font-bold text-xs cursor-pointer shadow-2xs"
-            title="فتح محطة تسجيل العمال والمشرفين"
+            title="مراحل تشغيل أوامر الإنتاج"
           >
             <Sliders className="w-4 h-4 text-blue-500" />
-            <span>محطة التشغيل</span>
+            <span>مراحل التشغيل</span>
           </button>
 
           <button

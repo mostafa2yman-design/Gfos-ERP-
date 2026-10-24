@@ -411,8 +411,9 @@ export interface LaborProfile {
   city?: string;
   hireDate?: string;
   baseSalary?: number;
+  weeklySalary?: number;
   pieceRate?: number;
-  salaryType?: 'يومية' | 'بالقطعة' | 'شهري' | 'بالساعة';
+  salaryType?: 'يومية' | 'أسبوعي' | 'بالقطعة' | 'شهري' | 'بالساعة';
   salaryPeriod?: 'يومي' | 'أسبوعي' | 'شهري';
   dailyWorkingHours?: number;
   isActive: boolean;
@@ -501,7 +502,9 @@ export type ScreenId =
   | 'treasury'
   | 'hr_payroll'
   | 'users'
-  | 'settings';
+  | 'settings'
+  | 'customer_statement'
+  | 'supplier_statement';
 
 export type SensitiveDataKey =
   // Costs & Manufacturing

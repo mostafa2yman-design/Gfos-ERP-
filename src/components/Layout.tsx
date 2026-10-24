@@ -33,7 +33,9 @@ import {
   PanelRightOpen,
   PanelRightClose,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  UserCheck,
+  Building2
 } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { getPrimaryBg, getPrimaryText, getRadiusClass, FONT_SIZE_OPTIONS, ThemeFontSize } from "../lib/theme";
@@ -62,7 +64,9 @@ export type LayoutViewType =
   | "hr_payroll" 
   | "overhead_costing"
   | "factory_floor_monitor"
-  | "operator_station";
+  | "operator_station"
+  | "customer_statement"
+  | "supplier_statement";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -111,6 +115,7 @@ export function Layout({ children, currentView, onNavigate, onGoBack, canGoBack 
   const hasFactorySection = hasScreenAccess('list') || hasScreenAccess('form') || hasScreenAccess('operator_station') || hasScreenAccess('factory_floor_monitor');
   const hasFinanceSection = hasScreenAccess('journal_entries') || hasScreenAccess('general_ledger') || hasScreenAccess('trial_balance') || hasScreenAccess('income_statement') || hasScreenAccess('cash_flow') || hasScreenAccess('balance_sheet') || hasScreenAccess('accounting_config') || hasScreenAccess('treasury');
   const hasSalesWarehouseSection = hasScreenAccess('sales') || hasScreenAccess('purchases') || hasScreenAccess('raw_materials_warehouse') || hasScreenAccess('finished_goods_warehouse');
+  const hasCustomerSupplierSection = hasScreenAccess('customer_statement') || hasScreenAccess('supplier_statement');
   const hasOverheadSection = hasScreenAccess('overhead_costing');
   const hasHrSection = hasScreenAccess('hr_payroll');
   const hasSettings = hasScreenAccess('settings');
@@ -535,6 +540,52 @@ export function Layout({ children, currentView, onNavigate, onGoBack, canGoBack 
             </div>
           )}
 
+          {/* Section: Customer & Supplier Management (إدارة العملاء والموردين) */}
+          {hasCustomerSupplierSection && (
+            <div>
+              <button 
+                onClick={() => toggleSection('customer_supplier')}
+                className="w-full flex items-center justify-between py-2.5 px-2 text-sm font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
+              >
+                {expandedSection === 'customer_supplier' ? <ChevronUp className={`w-4 h-4 ${getPrimaryText(color)}`} /> : <ChevronDown className="w-4 h-4" />}
+                <div className="flex items-center gap-2.5">
+                  <span>إدارة العملاء والموردين</span>
+                  <UserCheck className={`w-4 h-4 ${expandedSection === 'customer_supplier' ? getPrimaryText(color) : 'text-slate-500'}`} />
+                </div>
+              </button>
+              {expandedSection === 'customer_supplier' && (
+                <div className="mt-1 space-y-1 mb-2">
+                  {hasScreenAccess('customer_statement') && (
+                    <button
+                      onClick={() => handleNavClick("customer_statement")}
+                      className={`w-full flex items-center justify-end gap-3 px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer ${radiusClass} ${
+                        currentView === "customer_statement"
+                          ? `${primaryBg} ${color === 'orange' ? 'text-slate-900' : 'text-white'}`
+                          : "text-slate-400 hover:text-white hover:bg-slate-800/80"
+                      }`}
+                    >
+                      <span>كشف حساب عميل</span>
+                      <FileText className="w-4 h-4 text-blue-400" />
+                    </button>
+                  )}
+                  {hasScreenAccess('supplier_statement') && (
+                    <button
+                      onClick={() => handleNavClick("supplier_statement")}
+                      className={`w-full flex items-center justify-end gap-3 px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer ${radiusClass} ${
+                        currentView === "supplier_statement"
+                          ? `${primaryBg} ${color === 'orange' ? 'text-slate-900' : 'text-white'}`
+                          : "text-slate-400 hover:text-white hover:bg-slate-800/80"
+                      }`}
+                    >
+                      <span>كشف حساب مورد</span>
+                      <Building2 className="w-4 h-4 text-amber-400" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Section 5: Costing & Manufacturing Overhead */}
           {hasOverheadSection && (
             <div>
@@ -638,6 +689,15 @@ export function Layout({ children, currentView, onNavigate, onGoBack, canGoBack 
               {currentView === "accounting_config" && "التكوين الهيكلي والمالي"}
               {currentView === "treasury" && "إدارة الإيرادات والمصروفات وحركة الخزينة والسيولة"}
               {currentView === "settings" && "إعدادات النظام والتخصيص"}
+              {currentView === "customer_statement" && "إدارة العملاء والموردين / كشف حساب عميل"}
+              {currentView === "supplier_statement" && "إدارة العملاء والموردين / كشف حساب مورد"}
+              {currentView === "journal_entries" && "دفتر القيود اليومية المحاسبية"}
+              {currentView === "general_ledger" && "دفتر الأستاذ العام للحسابات"}
+              {currentView === "trial_balance" && "ميزان المراجعة (بالمجاميع والأرصدة)"}
+              {currentView === "income_statement" && "قائمة الدخل والأرباح والخسائر (P&L)"}
+              {currentView === "balance_sheet" && "قائمة المركز المالي (الميزانية العمومية)"}
+              {currentView === "cash_flow" && "قائمة التدفقات النقدية (Cash Flow)"}
+              {currentView === "sales" && "إدارة المبيعات وفواتير العملاء"}
               {currentView === "overhead_costing" && "التكاليف الصناعية غير المباشرة (MOH)"}
               {currentView === "hr_payroll" && "الموارد البشرية ومستحقات الفنيين"}
             </span>
@@ -727,7 +787,7 @@ export function Layout({ children, currentView, onNavigate, onGoBack, canGoBack 
                 title="مراحل تشغيل أوامر الإنتاج"
               >
                 <Sliders className="w-3.5 h-3.5 text-blue-500" />
-                <span>محطة التشغيل</span>
+                <span>مراحل التشغيل</span>
               </button>
             )}
 

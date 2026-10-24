@@ -45,11 +45,23 @@ export function LaborList() {
 
   const activeCount = items.filter(i => i.isActive !== false).length;
   const pieceWorkersCount = items.filter(i => i.salaryType === 'بالقطعة').length;
+  const weeklyWorkersCount = items.filter(i => i.salaryType === 'أسبوعي' || i.salaryPeriod === 'أسبوعي').length;
+  const totalWeeklyPayroll = items
+    .filter(i => i.isActive !== false)
+    .reduce((acc, i) => {
+      const w = i.weeklySalary || (
+        i.salaryType === 'أسبوعي' ? (i.baseSalary || 0) :
+        i.salaryType === 'يومية' && i.baseSalary ? (i.baseSalary * 6) :
+        i.salaryType === 'شهري' && i.baseSalary ? Math.round(i.baseSalary / 4.33) :
+        (i.baseSalary || 0)
+      );
+      return acc + Number(w || 0);
+    }, 0);
 
   return (
     <div className="space-y-4">
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-500 font-bold">إجمالي قوة العمل</span>
@@ -70,13 +82,25 @@ export function LaborList() {
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-amber-100 shadow-2xs flex items-center justify-between">
+        <div className="bg-white p-3.5 rounded-xl border border-purple-100 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-amber-600 font-bold">عمال بالقطعة والإنتاجية</span>
-            <div className="text-xl font-black text-amber-900">{pieceWorkersCount}</div>
+            <span className="text-xs text-purple-600 font-bold">عمال بالأجر الأسبوعي</span>
+            <div className="text-xl font-black text-purple-900">{weeklyWorkersCount}</div>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
             <Coins className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-xs text-indigo-600 font-bold">كتلة الأجور الأسبوعية</span>
+            <div className="text-xl font-black text-indigo-950">
+              {Number(totalWeeklyPayroll).toLocaleString('ar-EG')} <span className="text-xs font-normal">ج.م/أسبوع</span>
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+            <Building2 className="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -118,7 +142,8 @@ export function LaborList() {
               <th className="p-3">القسم والخط</th>
               <th className="p-3">الهاتف</th>
               <th className="p-3">نظام الأجر</th>
-              <th className="p-3">الأجر / سعر القطعة</th>
+              <th className="p-3">الأجر الأساسي</th>
+              <th className="p-3">الأجر الأسبوعي</th>
               <th className="p-3">حساب الأجور (الشجرة)</th>
               <th className="p-3">الحالة</th>
               <th className="p-3 w-24 text-center">الإجراءات</th>
@@ -168,11 +193,13 @@ export function LaborList() {
                   </td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                      item.salaryType === 'بالقطعة' 
-                        ? 'bg-amber-50 text-amber-800 border border-amber-200' 
-                        : 'bg-blue-50 text-blue-800 border border-blue-200'
+                      item.salaryType === 'أسبوعي'
+                        ? 'bg-purple-50 text-purple-800 border border-purple-200'
+                        : item.salaryType === 'بالقطعة' 
+                          ? 'bg-amber-50 text-amber-800 border border-amber-200' 
+                          : 'bg-blue-50 text-blue-800 border border-blue-200'
                     }`}>
-                      {item.salaryType || 'يومية'} ({item.salaryPeriod || 'يومي'})
+                      {item.salaryType || 'أسبوعي'} ({item.salaryPeriod || 'أسبوعي'})
                     </span>
                   </td>
                   <td className="p-3 font-bold text-slate-900">
@@ -181,6 +208,21 @@ export function LaborList() {
                     ) : (
                       <span>{Number(item.baseSalary || 0).toLocaleString('ar-EG')} ج.م</span>
                     )}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex flex-col">
+                      <span className="font-mono font-black text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 inline-block w-fit">
+                        {Number(item.weeklySalary || (
+                          item.salaryType === 'أسبوعي' ? (item.baseSalary || 1800) :
+                          item.salaryType === 'يومية' && item.baseSalary ? (item.baseSalary * 6) :
+                          item.salaryType === 'شهري' && item.baseSalary ? Math.round(item.baseSalary / 4.33) :
+                          (item.baseSalary || 1800)
+                        )).toLocaleString('ar-EG')} ج.م
+                      </span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">
+                        {item.salaryType === 'أسبوعي' ? 'أجر أسبوعي معتمد' : item.salaryType === 'يومية' ? 'معادل 6 أيام عمل' : 'أسبوعي'}
+                      </span>
+                    </div>
                   </td>
                   <td className="p-3">
                     <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">

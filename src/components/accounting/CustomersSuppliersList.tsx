@@ -263,6 +263,19 @@ export function CustomersSuppliersList({ autoOpenAddModal = false }: CustomersSu
                   <div className="flex justify-center gap-1">
                     <button 
                       type="button"
+                      onClick={() => {
+                        const targetView = item.type === 'supplier' ? 'supplier_statement' : 'customer_statement';
+                        window.dispatchEvent(new CustomEvent('gfos_navigate_view', { 
+                          detail: { view: targetView, partyId: item.id } 
+                        }));
+                      }} 
+                      className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                      title={item.type === 'supplier' ? 'عرض كشف حساب المورد' : 'عرض كشف حساب العميل'}
+                    >
+                      <FileText className="w-4 h-4 text-purple-600" />
+                    </button>
+                    <button 
+                      type="button"
                       onClick={() => setModalState({ 
                         isOpen: true, 
                         type: item.type === 'supplier' ? 'supplier' : 'customer', 
